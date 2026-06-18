@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://quge5.com/88/tag.min.js" data-zone="251034" async data-cfasync="false"></script> 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCRIPTIFY</title>
@@ -293,6 +292,63 @@
 </head>
 <body>
 
+<!-- =====================================================
+     MONETAG MULTITAG — popunder limited to once per session
+     =====================================================
+     HOW IT WORKS:
+     - First visit in a browser session → popunder fires once ✅
+     - Any further page interaction that session → blocked ✅
+     - User closes browser and comes back → fires once again ✅
+     - All other Monetag formats (banners, push, etc.) → unaffected ✅
+     - All Adsterra ads below → completely untouched ✅
+
+     We intercept window.open() BEFORE loading tag.min.js.
+     Monetag's popunder works by calling window.open() with no
+     name/features — that exact signature is what we gate.
+     Your own window.open() calls (e.g. YouTube subscribe button)
+     pass name="_blank" so they are never blocked.
+     ===================================================== -->
+<script>
+(function () {
+  var SESSION_KEY = 'mtag_pop_shown';
+
+  /* If popunder already fired this session, arm the blocker */
+  var blockNextPop = sessionStorage.getItem(SESSION_KEY) === '1';
+
+  /* Wrap window.open BEFORE the Monetag script loads */
+  var _realOpen = window.open;
+  window.open = function (url, name, features) {
+    /* Monetag popunder signature: url present, name & features
+       are undefined or empty string — nothing else matches this */
+    var isPopunder =
+      (name === undefined || name === null || name === '') &&
+      (features === undefined || features === null || features === '');
+
+    if (isPopunder && blockNextPop) {
+      /* Block this pop — but only once so the flag resets
+         (handles any edge-case double-fire within same load) */
+      blockNextPop = false;
+      return null;
+    }
+
+    /* Mark that the popunder has now fired for this session */
+    if (isPopunder) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+    }
+
+    return _realOpen.apply(this, arguments);
+  };
+
+  /* Dynamically inject the Monetag multitag script */
+  var s = document.createElement('script');
+  s.src = 'https://quge5.com/88/tag.min.js';
+  s.setAttribute('data-zone', '251034');
+  s.setAttribute('data-cfasync', 'false');
+  s.async = true;
+  document.head.appendChild(s);
+})();
+</script>
+
 <div class="wrap">
   <header>
     <div class="brand"><span class="dot"></span><span class="grad">Scriptify</span></div>
@@ -326,7 +382,7 @@
 
 <!-- BOTTOM AD: SPLIT PC / MOBILE -->
 <div style="margin: 40px auto; width: 100%; display: flex; justify-content: center;">
-    
+
     <!-- DESKTOP sees the 728x90 Leaderboard -->
     <div class="desktop-only">
       <script>
@@ -355,7 +411,6 @@
       <script type="text/javascript" src="https://www.highperformanceformat.com/fc815bc396eabf58d06976b30bbf739a/invoke.js"></script>
     </div>
 </div>
-  
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modalContent"></div>
@@ -386,8 +441,7 @@ function markScriptUnlocked(id){
 }
 
 /* =========================================================
-   Sample fallback data — shown only if the sheet fails to load,
-   so you can see the layout. Replace by editing your sheet.
+   Sample fallback data — shown only if the sheet fails to load
    ========================================================= */
 const FALLBACK_DATA = [
   {
@@ -670,21 +724,17 @@ function handleFavClick(id){
 function handleViewClick(id){
   const item = allItems.find(i => i.id === id);
   if(!item) return;
-
   if(isScriptUnlocked(id)){
     openModal(item);
     return;
   }
-
   openKeySystem(item);
 }
 
 function openKeySystem(item){
   const overlay = document.getElementById('modalOverlay');
   const modal = document.getElementById('modalContent');
-
   const subscribed = hasSubscribed();
-
   modal.innerHTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2>${escapeHtml(item.title)}</h2>
@@ -720,7 +770,6 @@ function ksDoSubscribe(itemId){
   btn.disabled = true;
   btn.textContent = 'Waiting...';
   window.open(YOUTUBE_SUBSCRIBE_URL, '_blank');
-
   setTimeout(() => {
     markSubscribed();
     const step1 = document.getElementById('ksStep1');
