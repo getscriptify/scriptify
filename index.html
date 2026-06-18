@@ -293,53 +293,93 @@
 <body>
 
 <!-- =====================================================
-     MONETAG MULTITAG — popunder limited to once per session
+     MONETAG MULTITAG — popunder strictly once per session
      =====================================================
-     HOW IT WORKS:
-     - First visit in a browser session → popunder fires once ✅
-     - Any further page interaction that session → blocked ✅
-     - User closes browser and comes back → fires once again ✅
-     - All other Monetag formats (banners, push, etc.) → unaffected ✅
-     - All Adsterra ads below → completely untouched ✅
+     STRATEGY: Three-layer intercept running simultaneously.
+     Monetag's multitag fires popunders via document-level
+     click listeners AND via window.open AND via creating
+     anchor elements. We block all three methods after the
+     first fire.
 
-     We intercept window.open() BEFORE loading tag.min.js.
-     Monetag's popunder works by calling window.open() with no
-     name/features — that exact signature is what we gate.
-     Your own window.open() calls (e.g. YouTube subscribe button)
-     pass name="_blank" so they are never blocked.
+     Layer 1 — window.open intercept (catches direct opens)
+     Layer 2 — addEventListener intercept (catches click listeners)
+     Layer 3 — document.createElement intercept (catches anchor trick)
+
+     sessionStorage resets when browser is fully closed,
+     so the user gets one popunder per browser session.
+     All other Monetag formats (push, vignette, in-page)
+     are completely unaffected — they don't use these methods.
+     All Adsterra ads are completely untouched.
      ===================================================== -->
 <script>
 (function () {
   var SESSION_KEY = 'mtag_pop_shown';
+  var popFired = sessionStorage.getItem(SESSION_KEY) === '1';
 
-  /* If popunder already fired this session, arm the blocker */
-  var blockNextPop = sessionStorage.getItem(SESSION_KEY) === '1';
-
-  /* Wrap window.open BEFORE the Monetag script loads */
+  /* ---- LAYER 1: intercept window.open ---- */
   var _realOpen = window.open;
   window.open = function (url, name, features) {
-    /* Monetag popunder signature: url present, name & features
-       are undefined or empty string — nothing else matches this */
-    var isPopunder =
-      (name === undefined || name === null || name === '') &&
+    var looksLikePop =
+      url && url.length > 0 &&
+      (name === undefined || name === null || name === '' || name === '_blank') &&
       (features === undefined || features === null || features === '');
-
-    if (isPopunder && blockNextPop) {
-      /* Block this pop — but only once so the flag resets
-         (handles any edge-case double-fire within same load) */
-      blockNextPop = false;
-      return null;
-    }
-
-    /* Mark that the popunder has now fired for this session */
-    if (isPopunder) {
+    if (looksLikePop) {
+      if (popFired) return null;   /* block */
+      popFired = true;
       sessionStorage.setItem(SESSION_KEY, '1');
     }
-
     return _realOpen.apply(this, arguments);
   };
 
-  /* Dynamically inject the Monetag multitag script */
+  /* ---- LAYER 2: intercept addEventListener on document & window ----
+     Monetag registers a 'click' listener on document after its script
+     loads. We wrap addEventListener so we can track every handler
+     Monetag adds, then remove them all after the first pop fires.    */
+  var _mtagHandlers = [];   /* store refs to Monetag's click listeners */
+  var _realAddEL = EventTarget.prototype.addEventListener;
+  var _realRemEL = EventTarget.prototype.removeEventListener;
+
+  EventTarget.prototype.addEventListener = function (type, fn, opts) {
+    /* Only track click listeners added to document or window
+       after the page has already rendered our own code           */
+    if (type === 'click' && (this === document || this === window)) {
+      var self = this;
+      var wrapped = function (e) {
+        if (popFired && _mtagHandlers.indexOf(wrapped) !== -1) {
+          /* Pop already fired — silently eat this click for Monetag  */
+          e.stopImmediatePropagation && e.stopImmediatePropagation();
+          return;
+        }
+        fn.apply(this, arguments);
+      };
+      wrapped._mtagOrig = fn;
+      wrapped._mtagTarget = self;
+      _mtagHandlers.push(wrapped);
+      return _realAddEL.call(this, type, wrapped, opts);
+    }
+    return _realAddEL.apply(this, arguments);
+  };
+
+  /* ---- LAYER 3: intercept document.createElement for <a> trick ----
+     Some ad scripts create an invisible <a> and programmatically
+     click it to open a new tab/window.                               */
+  var _realCreate = document.createElement.bind(document);
+  document.createElement = function (tag) {
+    var el = _realCreate(tag);
+    if (tag.toLowerCase() === 'a') {
+      var _realClick = el.click.bind(el);
+      el.click = function () {
+        if (popFired && el.target === '_blank' && el.href &&
+            !el.href.startsWith(location.origin)) {
+          return;   /* block suspicious programmatic anchor clicks */
+        }
+        _realClick();
+      };
+    }
+    return el;
+  };
+
+  /* ---- Load the Monetag multitag script ---- */
   var s = document.createElement('script');
   s.src = 'https://quge5.com/88/tag.min.js';
   s.setAttribute('data-zone', '251034');
