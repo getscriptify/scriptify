@@ -4,6 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCRIPTIFY</title>
+
+<!--
+  NUCLEAR ONE-POP BLOCKER — runs before everything else.
+  Rule: any automatic new window/tab is allowed ONCE per session.
+  After that first pop, ALL further automatic opens are killed.
+  Your own buttons (Subscribe, Lootlabs, Linkvertise) call
+  window._intentional() first which whitelists the next open.
+-->
+<script>
+(function(){
+  var KEY = 'pop_used';
+  var used = sessionStorage.getItem(KEY) === '1';
+
+  /* Whitelist flag — set by YOUR buttons before calling window.open */
+  window._intentional = function(){
+    window.__allowNext = true;
+  };
+
+  /* Override window.open — the primary popup method */
+  var _open = window.open;
+  window.open = function(url, name, feat){
+    if(window.__allowNext){
+      window.__allowNext = false;
+      return _open.apply(this, arguments);
+    }
+    if(!used){
+      used = true;
+      sessionStorage.setItem(KEY, '1');
+      return _open.apply(this, arguments);
+    }
+    console.log('[PopBlocker] blocked:', url);
+    return null;
+  };
+
+  /* Override HTMLAnchorElement.click — backup popup method */
+  var _aClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function(){
+    var isExternal = this.href &&
+                     !this.href.startsWith(location.origin) &&
+                     !this.href.startsWith('javascript') &&
+                     !this.href.startsWith('mailto');
+    var isNewTab   = this.target === '_blank' || this.target === '_new';
+    if(isExternal && isNewTab){
+      if(window.__allowNext){
+        window.__allowNext = false;
+        return _aClick.call(this);
+      }
+      if(!used){
+        used = true;
+        sessionStorage.setItem(KEY, '1');
+        return _aClick.call(this);
+      }
+      console.log('[PopBlocker] blocked anchor:', this.href);
+      return;
+    }
+    return _aClick.call(this);
+  };
+})();
+</script>
+
 <style>
   :root{
     --bg:#0a0a12;
@@ -34,7 +94,6 @@
 
   .wrap{max-width:1600px;margin:0 auto;padding:40px 48px 100px;}
 
-  /* --- RESPONSIVE AD MANAGEMENT --- */
   .desktop-only { display: block; }
   .mobile-only { display: none; }
   @media (max-width: 768px) {
@@ -42,7 +101,6 @@
     .mobile-only { display: flex !important; justify-content: center; width: 100%; }
   }
 
-  /* Header */
   header{margin-bottom:32px;}
   .brand{
     display:flex;align-items:center;gap:12px;
@@ -61,7 +119,6 @@
   }
   .tagline{color:var(--text-dim);font-size:15px;margin:0;line-height:1.5;}
 
-  /* Toolbar */
   .toolbar{
     background:rgba(255,255,255,0.02);
     border:1px solid var(--card-border);
@@ -69,9 +126,7 @@
     padding:28px;
     margin-bottom:36px;
   }
-  .toolbar-row{
-    display:flex;flex-wrap:wrap;gap:14px;
-  }
+  .toolbar-row{display:flex;flex-wrap:wrap;gap:14px;}
   .toolbar input, .toolbar select{
     flex:1 1 220px;
     background:rgba(255,255,255,0.03);
@@ -93,12 +148,9 @@
     display:flex;align-items:center;justify-content:center;gap:10px;
     margin-top:18px;font-size:15px;color:var(--text-dim);
   }
-  .fav-row input[type=checkbox]{
-    width:19px;height:19px;accent-color:var(--purple);cursor:pointer;flex-shrink:0;
-  }
+  .fav-row input[type=checkbox]{width:19px;height:19px;accent-color:var(--purple);cursor:pointer;flex-shrink:0;}
   .fav-row label{cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;}
 
-  /* Grid */
   .grid{
     display:grid;
     grid-template-columns:repeat(2, 1fr);
@@ -134,7 +186,6 @@
   .meta b{color:var(--text);font-weight:700;}
   .desc{font-size:15px;color:var(--text-dim);margin:12px 0 20px;line-height:1.55;flex-grow:1;}
 
-  /* Carousel */
   .carousel{
     position:relative;
     width:100%;
@@ -146,11 +197,7 @@
     margin:14px 0 8px;
   }
   .carousel-track{width:100%;height:100%;}
-  .carousel-slide{
-    width:100%;height:100%;
-    object-fit:cover;
-    display:block;
-  }
+  .carousel-slide{width:100%;height:100%;object-fit:cover;display:block;}
   .carousel-arrow{
     position:absolute;top:50%;transform:translateY(-50%);
     width:34px;height:34px;border-radius:50%;
@@ -164,15 +211,8 @@
   .carousel-arrow:hover{background:rgba(108,92,231,0.7);}
   .carousel-prev{left:10px;}
   .carousel-next{right:10px;}
-  .carousel-dots{
-    position:absolute;bottom:10px;left:0;right:0;
-    display:flex;justify-content:center;gap:6px;
-  }
-  .dot-indicator{
-    width:7px;height:7px;border-radius:50%;
-    background:rgba(255,255,255,0.35);
-    transition:background .15s ease;
-  }
+  .carousel-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px;}
+  .dot-indicator{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.35);transition:background .15s ease;}
   .dot-indicator.active{background:var(--teal-bright);}
 
   .card-actions{display:flex;gap:10px;}
@@ -183,11 +223,7 @@
     transition:filter .15s ease, transform .1s ease;
   }
   .btn:active{transform:scale(0.97);}
-  .btn-view{
-    flex:1;
-    background:var(--teal-bright);
-    color:#04241a;
-  }
+  .btn-view{flex:1;background:var(--teal-bright);color:#04241a;}
   .btn-view:hover{filter:brightness(1.08);}
   .btn-fav{
     width:46px;flex-shrink:0;
@@ -196,14 +232,8 @@
     border:1px solid rgba(108,92,231,0.4);
   }
   .btn-fav.active{background:var(--purple);color:#fff;}
-  .empty-state{
-    grid-column:1/-1;
-    text-align:center;
-    padding:60px 20px;
-    color:var(--text-faint);
-  }
+  .empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-faint);}
 
-  /* Modal */
   .modal-overlay{
     position:fixed;inset:0;
     background:rgba(5,5,10,0.78);
@@ -267,7 +297,6 @@
     margin-bottom:8px;
   }
   .download-btn:hover{filter:brightness(1.08);}
-
   .copy-btn{
     background:var(--teal-bright);color:#04241a;
     border:none;border-radius:10px;
@@ -286,108 +315,13 @@
     z-index:1100;
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
   .loading-row{grid-column:1/-1;text-align:center;color:var(--text-faint);padding:50px 0;}
 </style>
 </head>
 <body>
 
-<!-- =====================================================
-     MONETAG MULTITAG — popunder strictly once per session
-     =====================================================
-     STRATEGY: Three-layer intercept running simultaneously.
-     Monetag's multitag fires popunders via document-level
-     click listeners AND via window.open AND via creating
-     anchor elements. We block all three methods after the
-     first fire.
-
-     Layer 1 — window.open intercept (catches direct opens)
-     Layer 2 — addEventListener intercept (catches click listeners)
-     Layer 3 — document.createElement intercept (catches anchor trick)
-
-     sessionStorage resets when browser is fully closed,
-     so the user gets one popunder per browser session.
-     All other Monetag formats (push, vignette, in-page)
-     are completely unaffected — they don't use these methods.
-     All Adsterra ads are completely untouched.
-     ===================================================== -->
-<script>
-(function () {
-  var SESSION_KEY = 'mtag_pop_shown';
-  var popFired = sessionStorage.getItem(SESSION_KEY) === '1';
-
-  /* ---- LAYER 1: intercept window.open ---- */
-  var _realOpen = window.open;
-  window.open = function (url, name, features) {
-    var looksLikePop =
-      url && url.length > 0 &&
-      (name === undefined || name === null || name === '' || name === '_blank') &&
-      (features === undefined || features === null || features === '');
-    if (looksLikePop) {
-      if (popFired) return null;   /* block */
-      popFired = true;
-      sessionStorage.setItem(SESSION_KEY, '1');
-    }
-    return _realOpen.apply(this, arguments);
-  };
-
-  /* ---- LAYER 2: intercept addEventListener on document & window ----
-     Monetag registers a 'click' listener on document after its script
-     loads. We wrap addEventListener so we can track every handler
-     Monetag adds, then remove them all after the first pop fires.    */
-  var _mtagHandlers = [];   /* store refs to Monetag's click listeners */
-  var _realAddEL = EventTarget.prototype.addEventListener;
-  var _realRemEL = EventTarget.prototype.removeEventListener;
-
-  EventTarget.prototype.addEventListener = function (type, fn, opts) {
-    /* Only track click listeners added to document or window
-       after the page has already rendered our own code           */
-    if (type === 'click' && (this === document || this === window)) {
-      var self = this;
-      var wrapped = function (e) {
-        if (popFired && _mtagHandlers.indexOf(wrapped) !== -1) {
-          /* Pop already fired — silently eat this click for Monetag  */
-          e.stopImmediatePropagation && e.stopImmediatePropagation();
-          return;
-        }
-        fn.apply(this, arguments);
-      };
-      wrapped._mtagOrig = fn;
-      wrapped._mtagTarget = self;
-      _mtagHandlers.push(wrapped);
-      return _realAddEL.call(this, type, wrapped, opts);
-    }
-    return _realAddEL.apply(this, arguments);
-  };
-
-  /* ---- LAYER 3: intercept document.createElement for <a> trick ----
-     Some ad scripts create an invisible <a> and programmatically
-     click it to open a new tab/window.                               */
-  var _realCreate = document.createElement.bind(document);
-  document.createElement = function (tag) {
-    var el = _realCreate(tag);
-    if (tag.toLowerCase() === 'a') {
-      var _realClick = el.click.bind(el);
-      el.click = function () {
-        if (popFired && el.target === '_blank' && el.href &&
-            !el.href.startsWith(location.origin)) {
-          return;   /* block suspicious programmatic anchor clicks */
-        }
-        _realClick();
-      };
-    }
-    return el;
-  };
-
-  /* ---- Load the Monetag multitag script ---- */
-  var s = document.createElement('script');
-  s.src = 'https://quge5.com/88/tag.min.js';
-  s.setAttribute('data-zone', '251034');
-  s.setAttribute('data-cfasync', 'false');
-  s.async = true;
-  document.head.appendChild(s);
-})();
-</script>
+<!-- Monetag multitag — loaded normally, pounder capped by the blocker above -->
+<script src="https://quge5.com/88/tag.min.js" data-zone="251034" async data-cfasync="false"></script>
 
 <div class="wrap">
   <header>
@@ -422,8 +356,6 @@
 
 <!-- BOTTOM AD: SPLIT PC / MOBILE -->
 <div style="margin: 40px auto; width: 100%; display: flex; justify-content: center;">
-
-    <!-- DESKTOP sees the 728x90 Leaderboard -->
     <div class="desktop-only">
       <script>
         atOptions = {
@@ -436,8 +368,6 @@
       </script>
       <script type="text/javascript" src="https://www.highperformanceformat.com/ae42c156c5fa20ea991807421ee0dbd0/invoke.js"></script>
     </div>
-
-    <!-- MOBILE sees the 300x250 Square -->
     <div class="mobile-only">
       <script>
         atOptions = {
@@ -455,34 +385,17 @@
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modalContent"></div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   CONFIG — edit this one line to point at your published CSV
-   ========================================================= */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X9rA31AbPZyBdexF7T-rZWpUevAJWyX3RpMEGLUkZ6rkZBDA61kRHuFZYa-RTBiNzPohSElJNd9/pub?output=csv";
-
-/* YouTube channel subscribe link — used once, site-wide */
 const YOUTUBE_SUBSCRIBE_URL = "https://www.youtube.com/@Tix7778?sub_confirmation=1";
 
-function hasSubscribed(){
-  return localStorage.getItem('ks_subscribed') === 'true';
-}
-function markSubscribed(){
-  localStorage.setItem('ks_subscribed', 'true');
-}
-function isScriptUnlocked(id){
-  return localStorage.getItem('ks_unlocked_' + id) === 'true';
-}
-function markScriptUnlocked(id){
-  localStorage.setItem('ks_unlocked_' + id, 'true');
-}
+function hasSubscribed(){ return localStorage.getItem('ks_subscribed') === 'true'; }
+function markSubscribed(){ localStorage.setItem('ks_subscribed', 'true'); }
+function isScriptUnlocked(id){ return localStorage.getItem('ks_unlocked_' + id) === 'true'; }
+function markScriptUnlocked(id){ localStorage.setItem('ks_unlocked_' + id, 'true'); }
 
-/* =========================================================
-   Sample fallback data — shown only if the sheet fails to load
-   ========================================================= */
 const FALLBACK_DATA = [
   {
     id: "sample-glow",
@@ -510,18 +423,12 @@ const FALLBACK_DATA = [
   }
 ];
 
-/* =========================================================
-   State
-   ========================================================= */
 let allItems = [];
 let favorites = JSON.parse(localStorage.getItem('rpl_favorites') || '[]');
 
 function toggleFavorite(id){
-  if(favorites.includes(id)){
-    favorites = favorites.filter(f => f !== id);
-  } else {
-    favorites.push(id);
-  }
+  if(favorites.includes(id)) favorites = favorites.filter(f => f !== id);
+  else favorites.push(id);
   localStorage.setItem('rpl_favorites', JSON.stringify(favorites));
 }
 
@@ -532,9 +439,6 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-/* =========================================================
-   CSV parsing (handles quoted fields with commas)
-   ========================================================= */
 function parseCSV(text){
   const rows = [];
   let row = [], field = '', inQuotes = false;
@@ -548,7 +452,7 @@ function parseCSV(text){
       if(c === '"'){ inQuotes = true; }
       else if(c === ','){ row.push(field); field=''; }
       else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
-      else if(c === '\r'){ /* skip */ }
+      else if(c === '\r'){ }
       else { field += c; }
     }
   }
@@ -562,9 +466,6 @@ function parseCSV(text){
   });
 }
 
-/* =========================================================
-   Load data
-   ========================================================= */
 async function loadData(){
   try{
     const res = await fetch(SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + 'cb=' + Date.now());
@@ -607,9 +508,6 @@ function populateCategoryFilter(){
   });
 }
 
-/* =========================================================
-   Unlock-return detection
-   ========================================================= */
 function checkForUnlockReturn(){
   const params = new URLSearchParams(window.location.search);
   const unlockId = params.get('unlock');
@@ -623,9 +521,6 @@ function checkForUnlockReturn(){
   }
 }
 
-/* =========================================================
-   Rendering
-   ========================================================= */
 function render(){
   const grid = document.getElementById('grid');
   const search = document.getElementById('searchInput').value.toLowerCase();
@@ -643,11 +538,8 @@ function render(){
     return true;
   });
 
-  if(sort === 'alpha'){
-    items.sort((a,b) => a.title.localeCompare(b.title));
-  } else if(sort === 'newest'){
-    items = items.slice().reverse();
-  }
+  if(sort === 'alpha') items.sort((a,b) => a.title.localeCompare(b.title));
+  else if(sort === 'newest') items = items.slice().reverse();
 
   if(!items.length){
     grid.innerHTML = '<div class="empty-state">No plugins match. Try clearing filters or search.</div>';
@@ -686,13 +578,7 @@ function renderCarousel(item){
     <button class="carousel-arrow carousel-prev" onclick="moveCarousel(this, -1)" aria-label="Previous image">‹</button>
     <button class="carousel-arrow carousel-next" onclick="moveCarousel(this, 1)" aria-label="Next image">›</button>
   ` : '';
-  return `
-    <div class="carousel" data-current="0">
-      <div class="carousel-track">${slides}</div>
-      ${arrows}
-      ${dots}
-    </div>
-  `;
+  return `<div class="carousel" data-current="0"><div class="carousel-track">${slides}</div>${arrows}${dots}</div>`;
 }
 
 function advanceCarousel(carousel, dir){
@@ -721,31 +607,22 @@ const visibleCarousels = new Set();
 
 const carouselObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if(entry.isIntersecting){
-      visibleCarousels.add(entry.target);
-    } else {
-      visibleCarousels.delete(entry.target);
-    }
+    if(entry.isIntersecting) visibleCarousels.add(entry.target);
+    else visibleCarousels.delete(entry.target);
   });
 }, { threshold: 0.4 });
 
 function observeCarousels(){
   if(autoplayStopped) return;
   document.querySelectorAll('.carousel').forEach(c => {
-    if(c.querySelectorAll('.carousel-slide').length > 1){
-      carouselObserver.observe(c);
-    }
+    if(c.querySelectorAll('.carousel-slide').length > 1) carouselObserver.observe(c);
   });
 }
 
 function startAutoplay(){
   if(autoplayInterval || autoplayStopped) return;
   autoplayInterval = setInterval(() => {
-    if(autoplayStopped){
-      clearInterval(autoplayInterval);
-      autoplayInterval = null;
-      return;
-    }
+    if(autoplayStopped){ clearInterval(autoplayInterval); autoplayInterval = null; return; }
     visibleCarousels.forEach(carousel => advanceCarousel(carousel, 1));
   }, 3000);
 }
@@ -756,18 +633,12 @@ function escapeHtml(str){
   return d.innerHTML;
 }
 
-function handleFavClick(id){
-  toggleFavorite(id);
-  render();
-}
+function handleFavClick(id){ toggleFavorite(id); render(); }
 
 function handleViewClick(id){
   const item = allItems.find(i => i.id === id);
   if(!item) return;
-  if(isScriptUnlocked(id)){
-    openModal(item);
-    return;
-  }
+  if(isScriptUnlocked(id)){ openModal(item); return; }
   openKeySystem(item);
 }
 
@@ -779,14 +650,12 @@ function openKeySystem(item){
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2>${escapeHtml(item.title)}</h2>
     <div class="desc" style="margin-bottom:24px;">Complete the steps below to unlock this script.</div>
-
-    <div id="ksStep1" style="background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:14px;padding:22px;margin-bottom:${subscribed ? '0' : '20px'};${subscribed ? 'display:none;' : ''}">
+    <div id="ksStep1" style="background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:14px;padding:22px;margin-bottom:${subscribed?'0':'20px'};${subscribed?'display:none;':''}">
       <div style="font-weight:700;font-size:15px;margin-bottom:10px;">Step 1: Subscribe</div>
       <p class="desc" style="margin:0 0 16px;">Subscribe to our YouTube channel to continue (one-time, unlocks all scripts going forward).</p>
       <button class="btn btn-view" id="ksSubBtn" style="width:100%;" onclick="ksDoSubscribe('${item.id}')">Subscribe on YouTube</button>
     </div>
-
-    <div id="ksStep2" style="${subscribed ? '' : 'opacity:0.35;pointer-events:none;'}">
+    <div id="ksStep2" style="${subscribed?'':'opacity:0.35;pointer-events:none;'}">
       <div style="font-weight:700;font-size:15px;margin-bottom:14px;">Step 2: Choose a method to unlock</div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:2px solid var(--purple);border-radius:14px;padding:18px;text-align:center;">
@@ -809,6 +678,8 @@ function ksDoSubscribe(itemId){
   const btn = document.getElementById('ksSubBtn');
   btn.disabled = true;
   btn.textContent = 'Waiting...';
+  /* Whitelist this open so the blocker allows it through */
+  window._intentional();
   window.open(YOUTUBE_SUBSCRIBE_URL, '_blank');
   setTimeout(() => {
     markSubscribed();
@@ -823,10 +694,8 @@ function ksGoUnlock(itemId, method){
   const item = allItems.find(i => i.id === itemId);
   if(!item) return;
   const link = method === 'lootlabs' ? item.lootlabs_link : item.linkvertise_link;
-  if(!link){
-    showToast('No ' + method + ' link set for this script yet.');
-    return;
-  }
+  if(!link){ showToast('No ' + method + ' link set for this script yet.'); return; }
+  /* This uses window.location.href (same tab), not window.open, so no whitelist needed */
   window.location.href = link;
 }
 
@@ -837,8 +706,7 @@ function openModal(item){
   if(item.content_type === 'download' && item.download_url){
     bodyHtml = `<a class="download-btn" href="${escapeHtml(item.download_url)}" target="_blank" rel="noopener">⬇ Download Plugin</a>`;
   } else {
-    bodyHtml = `
-      <div class="code-box" id="codeBox-${item.id}">${escapeHtml(item.code)}</div>
+    bodyHtml = `<div class="code-box" id="codeBox-${item.id}">${escapeHtml(item.code)}</div>
       <button class="copy-btn" onclick="copyCode('${item.id}')">📋 Copy Code</button>`;
   }
   modal.innerHTML = `
@@ -864,9 +732,7 @@ function closeModal(){
 document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if(e.target.id === 'modalOverlay') closeModal();
 });
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Escape') closeModal();
-});
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('categoryFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
@@ -876,3 +742,5 @@ loadData();
 </script>
 </body>
 </html>
+ENDOFFILE
+echo "Done"
