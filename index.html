@@ -369,6 +369,22 @@
    ========================================================= */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X9rA31AbPZyBdexF7T-rZWpUevAJWyX3RpMEGLUkZ6rkZBDA61kRHuFZYa-RTBiNzPohSElJNd9/pub?output=csv";
 
+/* YouTube channel subscribe link — used once, site-wide */
+const YOUTUBE_SUBSCRIBE_URL = "https://www.youtube.com/@Tix7778?sub_confirmation=1";
+
+function hasSubscribed(){
+  return localStorage.getItem('ks_subscribed') === 'true';
+}
+function markSubscribed(){
+  localStorage.setItem('ks_subscribed', 'true');
+}
+function isScriptUnlocked(id){
+  return localStorage.getItem('ks_unlocked_' + id) === 'true';
+}
+function markScriptUnlocked(id){
+  localStorage.setItem('ks_unlocked_' + id, 'true');
+}
+
 /* =========================================================
    Sample fallback data — shown only if the sheet fails to load,
    so you can see the layout. Replace by editing your sheet.
@@ -379,7 +395,8 @@ const FALLBACK_DATA = [
     title: "Cinematic Glow Macro",
     category: "Color & Light",
     description: "A Fusion macro that adds a soft, filmic glow with adjustable threshold and falloff.",
-    locker_url: "https://example.com/locker/sample-glow",
+    lootlabs_link: "https://example.com/lootlabs/sample-glow",
+    linkvertise_link: "https://example.com/linkvertise/sample-glow",
     content_type: "code",
     code: "-- paste your macro code or setup string here in the sheet --",
     download_url: "",
@@ -390,7 +407,8 @@ const FALLBACK_DATA = [
     title: "Quick Denoise Preset",
     category: "Noise Reduction",
     description: "A node preset tuned for low-light footage from common mirrorless cameras.",
-    locker_url: "https://example.com/locker/sample-denoise",
+    lootlabs_link: "https://example.com/lootlabs/sample-denoise",
+    linkvertise_link: "https://example.com/linkvertise/sample-denoise",
     content_type: "download",
     code: "",
     download_url: "https://example.com/downloads/sample-denoise.zip",
@@ -465,7 +483,8 @@ async function loadData(){
       title: r.title || 'Untitled',
       category: r.category || 'Uncategorized',
       description: r.description || '',
-      locker_url: r.locker_url || r.lockerurl || '',
+      lootlabs_link: r.lootlabs_link || '',
+      linkvertise_link: r.linkvertise_link || '',
       content_type: (r.content_type || r.contenttype || 'code').toLowerCase(),
       code: r.code || '',
       download_url: r.download_url || r.downloadurl || '',
@@ -651,11 +670,75 @@ function handleFavClick(id){
 function handleViewClick(id){
   const item = allItems.find(i => i.id === id);
   if(!item) return;
-  if(!item.locker_url){
-    showToast('No link set for this item yet.');
+
+  if(isScriptUnlocked(id)){
+    openModal(item);
     return;
   }
-  window.location.href = item.locker_url;
+
+  openKeySystem(item);
+}
+
+function openKeySystem(item){
+  const overlay = document.getElementById('modalOverlay');
+  const modal = document.getElementById('modalContent');
+
+  const subscribed = hasSubscribed();
+
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>${escapeHtml(item.title)}</h2>
+    <div class="desc" style="margin-bottom:24px;">Complete the steps below to unlock this script.</div>
+
+    <div id="ksStep1" style="background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:14px;padding:22px;margin-bottom:${subscribed ? '0' : '20px'};${subscribed ? 'display:none;' : ''}">
+      <div style="font-weight:700;font-size:15px;margin-bottom:10px;">Step 1: Subscribe</div>
+      <p class="desc" style="margin:0 0 16px;">Subscribe to our YouTube channel to continue (one-time, unlocks all scripts going forward).</p>
+      <button class="btn btn-view" id="ksSubBtn" style="width:100%;" onclick="ksDoSubscribe('${item.id}')">Subscribe on YouTube</button>
+    </div>
+
+    <div id="ksStep2" style="${subscribed ? '' : 'opacity:0.35;pointer-events:none;'}">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px;">Step 2: Choose a method to unlock</div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:2px solid var(--purple);border-radius:14px;padding:18px;text-align:center;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Lootlabs</div>
+          <div class="desc" style="margin:0 0 14px;">Recommended</div>
+          <button class="btn btn-view" style="width:100%;" onclick="ksGoUnlock('${item.id}','lootlabs')">Continue</button>
+        </div>
+        <div style="flex:1;min-width:200px;background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:14px;padding:18px;text-align:center;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Linkvertise</div>
+          <div class="desc" style="margin:0 0 14px;">Alternative</div>
+          <button class="btn btn-view" style="width:100%;" onclick="ksGoUnlock('${item.id}','linkvertise')">Continue</button>
+        </div>
+      </div>
+    </div>
+  `;
+  overlay.classList.add('show');
+}
+
+function ksDoSubscribe(itemId){
+  const btn = document.getElementById('ksSubBtn');
+  btn.disabled = true;
+  btn.textContent = 'Waiting...';
+  window.open(YOUTUBE_SUBSCRIBE_URL, '_blank');
+
+  setTimeout(() => {
+    markSubscribed();
+    const step1 = document.getElementById('ksStep1');
+    const step2 = document.getElementById('ksStep2');
+    if(step1) step1.style.display = 'none';
+    if(step2){ step2.style.opacity = '1'; step2.style.pointerEvents = 'auto'; }
+  }, 7000);
+}
+
+function ksGoUnlock(itemId, method){
+  const item = allItems.find(i => i.id === itemId);
+  if(!item) return;
+  const link = method === 'lootlabs' ? item.lootlabs_link : item.linkvertise_link;
+  if(!link){
+    showToast('No ' + method + ' link set for this script yet.');
+    return;
+  }
+  window.location.href = link;
 }
 
 function openModal(item){
