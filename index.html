@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://quge5.com/88/tag.min.js" data-zone="251034" async data-cfasync="false"></script> 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCRIPTIFY</title>
+
+<!-- Monetag: Push Notification -->
+<script src="https://5gvci.com/act/files/tag.min.js?z=11169169" data-cfasync="false" async></script>
+<!-- Monetag: Push Notification Banner -->
+<script>(function(s){s.dataset.zone='11169179',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- Monetag: Vignette Banner -->
+<script>(function(s){s.dataset.zone='11169180',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
 <style>
   :root{
     --bg:#0a0a12;
@@ -326,36 +333,35 @@
 
 <!-- BOTTOM AD: SPLIT PC / MOBILE -->
 <div style="margin: 40px auto; width: 100%; display: flex; justify-content: center;">
-    
-    <!-- DESKTOP sees the 728x90 Leaderboard -->
-    <div class="desktop-only">
-      <script>
-        atOptions = {
-          'key' : 'ae42c156c5fa20ea991807421ee0dbd0',
-          'format' : 'iframe',
-          'height' : 90,
-          'width' : 728,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="https://www.highperformanceformat.com/ae42c156c5fa20ea991807421ee0dbd0/invoke.js"></script>
-    </div>
 
-    <!-- MOBILE sees the 300x250 Square -->
-    <div class="mobile-only">
-      <script>
-        atOptions = {
-          'key' : 'fc815bc396eabf58d06976b30bbf739a',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="https://www.highperformanceformat.com/fc815bc396eabf58d06976b30bbf739a/invoke.js"></script>
-    </div>
+  <!-- DESKTOP sees the 728x90 Leaderboard -->
+  <div class="desktop-only">
+    <script>
+      atOptions = {
+        'key' : 'ae42c156c5fa20ea991807421ee0dbd0',
+        'format' : 'iframe',
+        'height' : 90,
+        'width' : 728,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/ae42c156c5fa20ea991807421ee0dbd0/invoke.js"></script>
+  </div>
+
+  <!-- MOBILE sees the 300x250 Square -->
+  <div class="mobile-only">
+    <script>
+      atOptions = {
+        'key' : 'fc815bc396eabf58d06976b30bbf739a',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="https://www.highperformanceformat.com/fc815bc396eabf58d06976b30bbf739a/invoke.js"></script>
+  </div>
 </div>
-  
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal" id="modalContent"></div>
@@ -364,12 +370,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* =========================================================
-   CONFIG — edit this one line to point at your published CSV
-   ========================================================= */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSs3X9rA31AbPZyBdexF7T-rZWpUevAJWyX3RpMEGLUkZ6rkZBDA61kRHuFZYa-RTBiNzPohSElJNd9/pub?output=csv";
-
-/* YouTube channel subscribe link — used once, site-wide */
 const YOUTUBE_SUBSCRIBE_URL = "https://www.youtube.com/@Tix7778?sub_confirmation=1";
 
 function hasSubscribed(){
@@ -385,10 +386,6 @@ function markScriptUnlocked(id){
   localStorage.setItem('ks_unlocked_' + id, 'true');
 }
 
-/* =========================================================
-   Sample fallback data — shown only if the sheet fails to load,
-   so you can see the layout. Replace by editing your sheet.
-   ========================================================= */
 const FALLBACK_DATA = [
   {
     id: "sample-glow",
@@ -416,9 +413,6 @@ const FALLBACK_DATA = [
   }
 ];
 
-/* =========================================================
-   State
-   ========================================================= */
 let allItems = [];
 let favorites = JSON.parse(localStorage.getItem('rpl_favorites') || '[]');
 
@@ -438,9 +432,6 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
-/* =========================================================
-   CSV parsing (handles quoted fields with commas)
-   ========================================================= */
 function parseCSV(text){
   const rows = [];
   let row = [], field = '', inQuotes = false;
@@ -468,9 +459,6 @@ function parseCSV(text){
   });
 }
 
-/* =========================================================
-   Load data
-   ========================================================= */
 async function loadData(){
   try{
     const res = await fetch(SHEET_CSV_URL + (SHEET_CSV_URL.includes('?') ? '&' : '?') + 'cb=' + Date.now());
@@ -513,9 +501,6 @@ function populateCategoryFilter(){
   });
 }
 
-/* =========================================================
-   Unlock-return detection
-   ========================================================= */
 function checkForUnlockReturn(){
   const params = new URLSearchParams(window.location.search);
   const unlockId = params.get('unlock');
@@ -529,9 +514,6 @@ function checkForUnlockReturn(){
   }
 }
 
-/* =========================================================
-   Rendering
-   ========================================================= */
 function render(){
   const grid = document.getElementById('grid');
   const search = document.getElementById('searchInput').value.toLowerCase();
@@ -589,8 +571,8 @@ function renderCarousel(item){
     ? `<div class="carousel-dots">${item.images.map((_, idx) => `<span class="dot-indicator ${idx===0?'active':''}" data-index="${idx}"></span>`).join('')}</div>`
     : '';
   const arrows = item.images.length > 1 ? `
-    <button class="carousel-arrow carousel-prev" onclick="moveCarousel(this, -1)" aria-label="Previous image">‹</button>
-    <button class="carousel-arrow carousel-next" onclick="moveCarousel(this, 1)" aria-label="Next image">›</button>
+    <button class="carousel-arrow carousel-prev" onclick="moveCarousel(this, -1)" aria-label="Previous image">&#8249;</button>
+    <button class="carousel-arrow carousel-next" onclick="moveCarousel(this, 1)" aria-label="Next image">&#8250;</button>
   ` : '';
   return `
     <div class="carousel" data-current="0">
@@ -670,23 +652,20 @@ function handleFavClick(id){
 function handleViewClick(id){
   const item = allItems.find(i => i.id === id);
   if(!item) return;
-
   if(isScriptUnlocked(id)){
     openModal(item);
     return;
   }
-
   openKeySystem(item);
 }
 
 function openKeySystem(item){
   const overlay = document.getElementById('modalOverlay');
   const modal = document.getElementById('modalContent');
-
   const subscribed = hasSubscribed();
 
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <h2>${escapeHtml(item.title)}</h2>
     <div class="desc" style="margin-bottom:24px;">Complete the steps below to unlock this script.</div>
 
@@ -720,7 +699,6 @@ function ksDoSubscribe(itemId){
   btn.disabled = true;
   btn.textContent = 'Waiting...';
   window.open(YOUTUBE_SUBSCRIBE_URL, '_blank');
-
   setTimeout(() => {
     markSubscribed();
     const step1 = document.getElementById('ksStep1');
@@ -746,14 +724,14 @@ function openModal(item){
   const modal = document.getElementById('modalContent');
   let bodyHtml = '';
   if(item.content_type === 'download' && item.download_url){
-    bodyHtml = `<a class="download-btn" href="${escapeHtml(item.download_url)}" target="_blank" rel="noopener">⬇ Download Plugin</a>`;
+    bodyHtml = `<a class="download-btn" href="${escapeHtml(item.download_url)}" target="_blank" rel="noopener">&#x2B07; Download Plugin</a>`;
   } else {
     bodyHtml = `
       <div class="code-box" id="codeBox-${item.id}">${escapeHtml(item.code)}</div>
-      <button class="copy-btn" onclick="copyCode('${item.id}')">📋 Copy Code</button>`;
+      <button class="copy-btn" onclick="copyCode('${item.id}')">&#x1F4CB; Copy Code</button>`;
   }
   modal.innerHTML = `
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <h2>${escapeHtml(item.title)}</h2>
     <div class="meta">Category: ${escapeHtml(item.category)}</div>
     <div class="desc">${escapeHtml(item.description)}</div>
