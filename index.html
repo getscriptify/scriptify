@@ -35,6 +35,14 @@
 
   .wrap{max-width:1600px;margin:0 auto;padding:40px 48px 100px;}
 
+  /* --- RESPONSIVE AD MANAGEMENT --- */
+  .desktop-only { display: block; }
+  .mobile-only { display: none; }
+  @media (max-width: 768px) {
+    .desktop-only { display: none !important; }
+    .mobile-only { display: flex !important; justify-content: center; width: 100%; }
+  }
+
   /* Header */
   header{margin-bottom:32px;}
   .brand{
@@ -304,24 +312,48 @@
       <label><input type="checkbox" id="favOnly"> ❤ Favorites Only</label>
     </div>
   </div>
-  <script async="async" data-cfasync="false" src="https://pl29783786.effectivecpmnetwork.com/4317a7032fc1b3e0338592e355aa38a2/invoke.js"></script>
-<div id="container-4317a7032fc1b3e0338592e355aa38a2"></div>
+
+  <!-- TOP AD: PC ONLY -->
+  <div class="desktop-only" style="margin: 0 auto 36px auto; width: 100%; max-width: 1600px;">
+    <script async="async" data-cfasync="false" src="https://pl29783786.effectivecpmnetwork.com/4317a7032fc1b3e0338592e355aa38a2/invoke.js"></script>
+    <div id="container-4317a7032fc1b3e0338592e355aa38a2"></div>
+  </div>
 
   <div class="grid" id="grid">
     <div class="loading-row">Loading plugins…</div>
   </div>
 </div>
-<div style="display: flex; justify-content: center; margin: 40px auto; width: 100%;">
-  <script>
-    atOptions = {
-      'key' : 'ae42c156c5fa20ea991807421ee0dbd0',
-      'format' : 'iframe',
-      'height' : 90,
-      'width' : 728,
-      'params' : {}
-    };
-  </script>
-  <script type="text/javascript" src="https://www.highperformanceformat.com/ae42c156c5fa20ea991807421ee0dbd0/invoke.js"></script>
+
+<!-- BOTTOM AD: SPLIT PC / MOBILE -->
+<div style="margin: 40px auto; width: 100%; display: flex; justify-content: center;">
+    
+    <!-- DESKTOP sees the 728x90 Leaderboard -->
+    <div class="desktop-only">
+      <script>
+        atOptions = {
+          'key' : 'ae42c156c5fa20ea991807421ee0dbd0',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="https://www.highperformanceformat.com/ae42c156c5fa20ea991807421ee0dbd0/invoke.js"></script>
+    </div>
+
+    <!-- MOBILE sees the 300x250 Square -->
+    <div class="mobile-only">
+      <script>
+        atOptions = {
+          'key' : 'fc815bc396eabf58d06976b30bbf739a',
+          'format' : 'iframe',
+          'height' : 250,
+          'width' : 300,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="https://www.highperformanceformat.com/fc815bc396eabf58d06976b30bbf739a/invoke.js"></script>
+    </div>
 </div>
   
 
@@ -464,11 +496,6 @@ function populateCategoryFilter(){
 
 /* =========================================================
    Unlock-return detection
-   When Linkvertise/Lootlabs redirects back, it should hit:
-     https://yoursite.com/?unlock=THE_ID
-   This reads that param, cleans the URL, and opens that one
-   post's modal automatically. Nothing is stored — visiting
-   that URL is the only way the modal ever opens.
    ========================================================= */
 function checkForUnlockReturn(){
   const params = new URLSearchParams(window.location.search);
@@ -476,7 +503,6 @@ function checkForUnlockReturn(){
   if(unlockId){
     const item = allItems.find(i => i.id === unlockId);
     if(item){
-      // clean the URL so refreshing doesn't re-trigger anything odd
       const cleanUrl = window.location.origin + window.location.pathname;
       window.history.replaceState({}, '', cleanUrl);
       setTimeout(() => openModal(item), 50);
@@ -507,7 +533,6 @@ function render(){
   if(sort === 'alpha'){
     items.sort((a,b) => a.title.localeCompare(b.title));
   } else if(sort === 'newest'){
-    items.slice().reverse(); // sheet order assumed oldest->newest; newest = reverse
     items = items.slice().reverse();
   }
 
@@ -571,16 +596,12 @@ function advanceCarousel(carousel, dir){
 }
 
 function moveCarousel(btn, dir){
-  autoplayStopped = true; // any manual arrow click stops auto-cycling everywhere, for good
+  autoplayStopped = true;
   if(autoplayInterval){ clearInterval(autoplayInterval); autoplayInterval = null; }
   const carousel = btn.closest('.carousel');
   advanceCarousel(carousel, dir);
 }
 
-/* =========================================================
-   Auto-play: every visible multi-image carousel advances
-   every 4 seconds, until any arrow anywhere is clicked.
-   ========================================================= */
 let autoplayStopped = false;
 let autoplayInterval = null;
 const visibleCarousels = new Set();
@@ -640,7 +661,6 @@ function handleViewClick(id){
 function openModal(item){
   const overlay = document.getElementById('modalOverlay');
   const modal = document.getElementById('modalContent');
-
   let bodyHtml = '';
   if(item.content_type === 'download' && item.download_url){
     bodyHtml = `<a class="download-btn" href="${escapeHtml(item.download_url)}" target="_blank" rel="noopener">⬇ Download Plugin</a>`;
@@ -649,7 +669,6 @@ function openModal(item){
       <div class="code-box" id="codeBox-${item.id}">${escapeHtml(item.code)}</div>
       <button class="copy-btn" onclick="copyCode('${item.id}')">📋 Copy Code</button>`;
   }
-
   modal.innerHTML = `
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h2>${escapeHtml(item.title)}</h2>
@@ -676,7 +695,6 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') closeModal();
 });
-
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('categoryFilter').addEventListener('change', render);
 document.getElementById('sortSelect').addEventListener('change', render);
