@@ -299,6 +299,9 @@
 
   .loading-row{grid-column:1/-1;text-align:center;color:var(--text-faint);padding:50px 0;}
 </style>
+
+<!-- Adsterra Popunder -->
+<script src="https://pl29790256.effectivecpmnetwork.com/c5/0c/fe/c50cfe2e0190efce5bdf339890361786.js"></script>
 </head>
 <body>
 
@@ -514,13 +517,12 @@ function checkForDirectLink(){
 // ---------------------------------------------------------------------------
 // Ad loading — deliberately deferred until AFTER content (and any direct-link
 // modal) has rendered, so visitors always see the script grid / popup first.
-// Adsterra loads before Monetag per provider priority.
+// Adsterra only (banners + popunder via the script tag in <head>).
 // ---------------------------------------------------------------------------
 function loadAdsDeferred(){
   // Give the browser a beat to paint the grid/modal first.
   setTimeout(() => {
     loadAdsterra();
-    loadMonetag();
   }, 150);
 }
 
@@ -575,27 +577,6 @@ function loadAdsterra(){
     bottomMobile.appendChild(cfgScript);
     bottomMobile.appendChild(loaderScript);
   }
-}
-
-function loadMonetag(){
-  // Push Notification
-  const m1 = document.createElement('script');
-  m1.src = 'https://5gvci.com/act/files/tag.min.js?z=11169169';
-  m1.dataset.cfasync = 'false';
-  m1.async = true;
-  document.body.appendChild(m1);
-
-  // Push Notification Banner
-  const m2 = document.createElement('script');
-  m2.dataset.zone = '11169179';
-  m2.src = 'https://nap5k.com/tag.min.js';
-  document.body.appendChild(m2);
-
-  // Vignette Banner
-  const m3 = document.createElement('script');
-  m3.dataset.zone = '11169180';
-  m3.src = 'https://n6wxm.com/vignette.min.js';
-  document.body.appendChild(m3);
 }
 
 function render(){
