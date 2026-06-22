@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SCRIPTIFY</title>
 
+<!-- Monetag: Popunder -->
+<script>(function(s){s.dataset.zone='11184498',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- Monetag: Vignette Banner -->
+<script>(function(s){s.dataset.zone='11169180',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- Monetag: In-Page Push -->
+<script>(function(s){s.dataset.zone='11169179',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- Monetag: Push Notifications -->
+<script src="https://5gvci.com/act/files/tag.min.js?z=11169169" data-cfasync="false" async></script>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3GPML3YSND"></script>
 <script>
@@ -511,13 +520,14 @@ function checkForDirectLink(){
 // ---------------------------------------------------------------------------
 // Ad loading — deliberately deferred until AFTER content (and any direct-link
 // modal) has rendered, so visitors always see the script grid / popup first.
-// Adsterra (banners) + Monetag (popunder, vignette, in-page push, push notifications).
+// Adsterra banners only — Monetag tags are placed directly in <head> per
+// their installation requirement (verification expects literal tags, not
+// dynamically-injected scripts).
 // ---------------------------------------------------------------------------
 function loadAdsDeferred(){
   // Give the browser a beat to paint the grid/modal first.
   setTimeout(() => {
     loadAdsterra();
-    loadMonetag();
   }, 150);
 }
 
@@ -572,24 +582,6 @@ function loadAdsterra(){
     bottomMobile.appendChild(cfgScript);
     bottomMobile.appendChild(loaderScript);
   }
-}
-
-function loadMonetag(){
-  // Popunder
-  (function(s){s.dataset.zone='11184498',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-
-  // Vignette Banner
-  (function(s){s.dataset.zone='11169180',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-
-  // In-Page Push
-  (function(s){s.dataset.zone='11169179',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
-
-  // Push Notifications
-  const pushNotif = document.createElement('script');
-  pushNotif.src = 'https://5gvci.com/act/files/tag.min.js?z=11169169';
-  pushNotif.dataset.cfasync = 'false';
-  pushNotif.async = true;
-  document.body.appendChild(pushNotif);
 }
 
 function render(){
