@@ -299,9 +299,6 @@
 
   .loading-row{grid-column:1/-1;text-align:center;color:var(--text-faint);padding:50px 0;}
 </style>
-
-<!-- Adsterra Popunder -->
-<script src="https://pl29790256.effectivecpmnetwork.com/c5/0c/fe/c50cfe2e0190efce5bdf339890361786.js"></script>
 </head>
 <body>
 
@@ -514,12 +511,13 @@ function checkForDirectLink(){
 // ---------------------------------------------------------------------------
 // Ad loading — deliberately deferred until AFTER content (and any direct-link
 // modal) has rendered, so visitors always see the script grid / popup first.
-// Adsterra only (banners + popunder via the script tag in <head>).
+// Adsterra (banners) + Monetag (popunder, vignette, in-page push, push notifications).
 // ---------------------------------------------------------------------------
 function loadAdsDeferred(){
   // Give the browser a beat to paint the grid/modal first.
   setTimeout(() => {
     loadAdsterra();
+    loadMonetag();
   }, 150);
 }
 
@@ -574,6 +572,24 @@ function loadAdsterra(){
     bottomMobile.appendChild(cfgScript);
     bottomMobile.appendChild(loaderScript);
   }
+}
+
+function loadMonetag(){
+  // Popunder
+  (function(s){s.dataset.zone='11184498',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+
+  // Vignette Banner
+  (function(s){s.dataset.zone='11169180',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+
+  // In-Page Push
+  (function(s){s.dataset.zone='11169179',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
+
+  // Push Notifications
+  const pushNotif = document.createElement('script');
+  pushNotif.src = 'https://5gvci.com/act/files/tag.min.js?z=11169169';
+  pushNotif.dataset.cfasync = 'false';
+  pushNotif.async = true;
+  document.body.appendChild(pushNotif);
 }
 
 function render(){
